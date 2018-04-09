@@ -1,5 +1,5 @@
 var San;
-var map = window.__SAN_HOT_MAP__ = {};
+var map = global.__SAN_HOT_MAP__ = {};
 var installed = false;
 
 exports.install = function (san) {
@@ -7,38 +7,36 @@ exports.install = function (san) {
         return;
     }
     installed = true;
-
     San = san.__esModule ? san.default : san;
+    exports.compatible = Number(san.version.split('.').join('')) >= 351;
 
+    if (!exports.compatible) {
+        console.warn(
+            '[HMR] You are using a version of san-hot-reload-api that is ' +
+            'only compatible with san.js core ^3.5.1.'
+        );
+    }
 };
 
 exports.createRecord = function (id, options) {
+    var Ctor = San.defineComponent(options);
     makeOptionsHot(id, options);
     map[id] = {
-        Ctor: San.defineComponent(options),
+        Ctor: Ctor,
+        options: options,
         instances: []
     };
 };
 
-// exports.reload = tryWrap(function (id, options) {
-//     var record = map[id];
-//     if (options) {
-//         makeOptionsHot(id, options);
-//         var newCtor = San.defineComponent(options);
-//         record.Ctor.options = newCtor.options;
-//         record.instances.slice.forEach(function (instance) {
-//             if()
-//         })
-//     }
-// });
-
 function injectHook(options, name, hook) {
     var existing = options[name];
+
     options[name] = existing
-        ? Array.isArray(existing)
-            ? existing.concat(hook)
-            : [existing, hook]
-        : [hook];
+        ? function () {
+            existing.call(this);
+            hook.call(this);
+        }
+        : hook;
 }
 
 function makeOptionsHot(id, options) {
@@ -46,7 +44,7 @@ function makeOptionsHot(id, options) {
         map[id].instances.push(this);
     });
 
-    injectHook(options, 'disposed', function () {
+    injectHook(options, 'detached', function () {
         var instances = map[id].instances;
         instances.splice(instances.indexOf(this), 1);
     });
@@ -56,9 +54,31 @@ function tryWrap(fn) {
     return function (id, arg) {
         try {
             fn(id, arg);
-        } catch (e) {
-            console.err(e);
-            console.warn('Something went wrong during hot-reload,Full reload required.');
+        }
+        catch (e) {
+            console.error(e);
+            console.warn('Something went wrong during hot-reload, Full reload required.');
         }
     };
 }
+
+exports.reload = tryWrap(function (id, newOptions) {
+    var record = map[id];
+    makeOptionsHot(id, newOptions);
+    record.Ctor = San.defineComponent(newOptions);
+
+    record.instances.concat().forEach(function (instance) {
+        var parentEl = instance.el.parentElement;
+        var beforeEl = instance.el.nextElementSibling;
+        var options = {
+            subTag: instance.subTag,
+            owner: instance.owner,
+            scope: instance.scope,
+            parent: instance.parent,
+            aNode: instance.givenANode
+        };
+        instance.dispose();
+        var newInstance = new record.Ctor(options);
+        newInstance.attach(parentEl, beforeEl);
+    });
+});
