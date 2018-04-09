@@ -1,0 +1,23 @@
+{
+  "name": "san-hot-reload-api",
+  "version": "1.0.0",
+  "description": "a hot-reload api for san.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jiangjiu/san-hot-reload-api.git"
+  },
+  "keywords": [
+    "san",
+    "hot-reload"
+  ],
+  "author": "zhangsiyuan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jiangjiu/san-hot-reload-api/issues"
+  },
+  "homepage": "https://github.com/jiangjiu/san-hot-reload-api#readme"
+}
