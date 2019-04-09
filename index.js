@@ -40,6 +40,9 @@ function injectHook(options, name, hook) {
 }
 
 function makeOptionsHot(id, options) {
+    // options 可能是san.defineComponent(options) 返回的组件类 希望在此做一个兼容处理
+    options = typeof options === 'function' ? options.prototype : options;
+
     injectHook(options, 'attached', function () {
         map[id].instances.push(this);
     });
