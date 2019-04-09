@@ -1,6 +1,6 @@
 {
   "name": "san-hot-reload-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "a hot-reload api for san.js",
   "main": "index.js",
   "scripts": {
